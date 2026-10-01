@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusFind AI - CCIT Department Lost and Found</title>
+    <!-- Google Fonts & Lucide Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="dark-theme">
+    <div id="app" class="app-container">
+
+        <!-- TOP NAVIGATION HEADER -->
+        <header class="top-header">
+            <div class="header-left">
+                <div class="logo-wrapper">
+                    <img src="campusfind_logo.png" alt="CCIT Department Official Logo" class="brand-logo">
+                    <div class="brand-glow"></div>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">
+                        <span class="highlight">CampusFind</span> AI
+                        <span class="dept-badge">CCIT DEPARTMENT</span>
+                    </div>
+                    <p class="brand-subtitle">Interactive Lost & Found Operations Portal</p>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <!-- Office Status Pill -->
+                <div class="status-pill open" id="officeStatusPill" title="Physical claim location & hours">
+                    <span class="pulse-dot"></span>
+                    <span class="status-text"><strong>SBO Office</strong> • 8:00 AM - 3:00 PM</span>
+                </div>
+
+                <!-- Authentication Badge / Control -->
+                <div class="auth-bar">
+                    <div id="userAuthBadge" class="user-badge unauthenticated" onclick="openAuthModal()">
+                        <i data-lucide="shield-alert" class="auth-icon"></i>
+                        <span id="authBadgeText">Unauthenticated</span>
+                        <button class="btn-auth-action" id="authActionBtn">Log In</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- NAVIGATION BAR TABS -->
+        <nav class="main-nav">
+            <div class="nav-tabs">
+                <button class="nav-btn active" data-tab="assistant">
+                    <i data-lucide="bot"></i>
+                    <span>CampusFind AI</span>
+                    <span class="badge-indicator pulse">AI Assistant</span>
+                </button>
+                <button class="nav-btn" data-tab="browse">
+                    <i data-lucide="search"></i>
+                    <span>Browse Catalog</span>
+                    <span class="badge-count" id="catalogCount">0</span>
+                </button>
+                <button class="nav-btn" data-tab="report-lost">
+                    <i data-lucide="file-warning"></i>
+                    <span>Report Lost Item</span>
+                </button>
+                <button class="nav-btn" data-tab="report-found">
+                    <i data-lucide="package-plus"></i>
+                    <span>Report Found Item</span>
+                </button>
+                <button class="nav-btn" data-tab="my-claims">
+                    <i data-lucide="ticket"></i>
+                    <span>My Claims</span>
+                    <span class="badge-count hidden" id="myClaimsCount">0</span>
+                </button>
+                <button class="nav-btn admin-tab" data-tab="admin">
+                    <i data-lucide="shield-check"></i>
+                    <span>SBO Desk Admin</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+
+            <!-- TAB 1: AI ASSISTANT CHATBOT INTERFACE -->
+            <section id="tab-assistant" class="tab-pane active">
+                <div class="chat-wrapper">
+
+                    <!-- Chat Header Banner -->
+                    <div class="chat-header">
+                        <div class="agent-profile">
+                            <div class="avatar-box">
+                                <i data-lucide="cpu"></i>
+                            </div>
+                            <div class="agent-info">
+                                <h3>CampusFind AI Assistant</h3>
+                                <p>Automated Operations for CCIT Lost & Found • Authenticated Protocol Active</p>
+                            </div>
+                        </div>
+
+                        <div class="chat-header-actions">
+                            <div class="auth-state-pill" id="chatAuthNotice">
+                                <i data-lucide="lock"></i>
+                                <span id="chatAuthNoticeText">Logged Out (Guest)</span>
+                            </div>
+                            <button class="btn-icon" onclick="clearChatHistory()" title="Clear Chat History">
+                                <i data-lucide="rotate-ccw"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages Container -->
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Messages inserted dynamically via JavaScript -->
+                    </div>
+
+                    <!-- Quick Action Prompts -->
+                    <div class="quick-prompts-bar">
+                        <span class="prompt-label"><i data-lucide="sparkles"></i> Suggested Actions:</span>
+                        <div class="prompt-pills" id="promptPills">
+                            <!-- Dynamically populated based on auth status -->
+                        </div>
+                    </div>
+
+                    <!-- Chat Input Area -->
+                    <div class="chat-input-area">
+                        <form id="chatForm" onsubmit="handleChatSubmit(event)">
+                            <div class="input-container">
+                                <input type="text" id="chatInput"
+                                    placeholder="Ask CampusFind AI (e.g. 'I lost my Lenovo laptop in CCIT Lab 2' or 'Search found items')..."
+                                    autocomplete="off">
+                                <button type="submit" class="btn-send" id="btnSend">
+                                    <i data-lucide="send"></i>
+                                    <span>Send</span>
+                                </button>
+                            </div>
+                        </form>
+                        <div class="chat-disclaimer">
+                            <i data-lucide="shield-alert"></i>
+                            <span>CampusFind AI strictly protects privacy. Distinguishing features are never disclosed
+                                publicly.</span>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- TAB 2: BROWSE CATALOG -->
+            <section id="tab-browse" class="tab-pane">
+                <div class="catalog-header">
+                    <div class="section-title-box">
+                        <h2><i data-lucide="package-search"></i> CCIT Department Item Catalog</h2>
+                        <p>Browse reported lost and found items. Authenticate to generate claim reference codes.</p>
+                    </div>
+
+                    <div class="catalog-stats" id="catalogQuickStats">
+                        <!-- Dynamic stats pills -->
+                    </div>
+                </div>
+
+                <!-- Filter & Search Controls -->
+                <div class="filter-card">
+                    <div class="search-box">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="catalogSearchInput"
+                            placeholder="Search by item name, category, brand, color, or location..."
+                            oninput="renderCatalog()">
+                        <button class="btn-clear-search" id="btnClearSearch" onclick="clearSearchFilters()">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label><i data-lucide="filter"></i> Status:</label>
+                            <select id="filterStatus" onchange="renderCatalog()">
+                                <option value="ALL">All Items</option>
+                                <option value="FOUND" selected>Found Items (Available to Claim)</option>
+                                <option value="LOST">Reported Lost Items</option>
+                                <option value="CLAIMED">Claimed / Resolved</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-item">
+                            <label><i data-lucide="layers"></i> Category:</label>
+                            <select id="filterCategory" onchange="renderCatalog()">
+                                <option value="ALL">All Categories</option>
+                                <option value="Electronics">Electronics & Chargers</option>
+                                <option value="ID & Cards">Student IDs & Wallet Cards</option>
+                                <option value="Bags & Accessories">Bags, Backpacks & Pouches</option>
+                                <option value="Keys & Personal">Keys & Personal Items</option>
+                                <option value="Books & Notes">Books, Notes & Calculators</option>
+                                <option value="Apparel & Umbrella">Apparel & Umbrellas</option>
+                                <option value="Others">Other Items</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-item">
+                            <label><i data-lucide="map-pin"></i> CCIT Location:</label>
+                            <select id="filterLocation" onchange="renderCatalog()">
+                                <option value="ALL">All Locations</option>
+                                <option value="CCIT Computer Lab 1">Computer Lab 1</option>
+                                <option value="CCIT Computer Lab 2">Computer Lab 2</option>
+                                <option value="CCIT Computer Lab 3">Computer Lab 3</option>
+                                <option value="Lecture Hall A">Lecture Hall A</option>
+                                <option value="Lecture Hall B">Lecture Hall B</option>
+                                <option value="SBO Office Desk">SBO Office Desk</option>
+                                <option value="CCIT Student Lounge">Student Lounge</option>
+                                <option value="Faculty Office Floor">Faculty Office Floor</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Catalog Items Grid -->
+                <div class="catalog-grid" id="catalogGrid">
+                    <!-- Items populated dynamically -->
+                </div>
+            </section>
+
+            <!-- TAB 3: REPORT LOST ITEM -->
+            <section id="tab-report-lost" class="tab-pane">
+                <div class="form-container">
+                    <div class="form-header">
+                        <div class="form-icon lost-icon"><i data-lucide="file-question"></i></div>
+                        <div>
+                            <h2>Report a Lost Item</h2>
+                            <p>File an official loss report. Requires student authentication for tracking.</p>
+                        </div>
+                    </div>
+
+                    <!-- Auth Alert Box -->
+                    <div class="auth-gate-banner" id="lostAuthGate">
+                        <i data-lucide="lock"></i>
+                        <div>
+                            <strong>Authentication Required</strong>
+                            <p>Please log in with your Student ID to report, search, or claim items.</p>
+                        </div>
+                        <button class="btn-primary" onclick="openAuthModal()">Login with Student ID</button>
+                    </div>
+
+                    <form id="lostItemForm" onsubmit="submitLostItemForm(event)" class="guided-form">
+                        <div class="form-grid">
+
+                            <div class="form-field full-width">
+                                <label for="lostCategory">Item Category <span class="req">*</span></label>
+                                <select id="lostCategory" required>
+                                    <option value="" disabled selected>Select category...</option>
+                                    <option value="Electronics">Electronics (Laptop, Phone, Charger, Flash Drive)
+                                    </option>
+                                    <option value="ID & Cards">Student ID, Credit Card, RFID Badge</option>
+                                    <option value="Bags & Accessories">Backpack, Wallet, Pouch, Sunglasses</option>
+                                    <option value="Keys & Personal">Keys, Keychain, Water Bottle, Umbrella</option>
+                                    <option value="Books & Notes">Notebook, Textbook, Scientific Calculator</option>
+                                    <option value="Apparel & Umbrella">Jacket, Hoodie, Cap, Umbrella</option>
+                                    <option value="Others">Other Items</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="lostBrandColor">Brand / Primary Color <span class="req">*</span></label>
+                                <input type="text" id="lostBrandColor"
+                                    placeholder="e.g. Apple MacBook Air (Space Gray), Anker Black Powerbank" required>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="lostLocation">Last Known Department Location <span
+                                        class="req">*</span></label>
+                                <select id="lostLocation" required>
+                                    <option value="" disabled selected>Select CCIT location...</option>
+                                    <option value="CCIT Computer Lab 1">CCIT Computer Lab 1</option>
+                                    <option value="CCIT Computer Lab 2">CCIT Computer Lab 2</option>
+                                    <option value="CCIT Computer Lab 3">CCIT Computer Lab 3</option>
+                                    <option value="Lecture Hall A">Lecture Hall A</option>
+                                    <option value="Lecture Hall B">Lecture Hall B</option>
+                                    <option value="CCIT Student Lounge">CCIT Student Lounge</option>
+                                    <option value="CCIT Library & Study Center">CCIT Library & Study Center</option>
+                                    <option value="SBO Office Desk">SBO Office Desk Area</option>
+                                    <option value="Faculty Office Floor">Faculty Office Floor</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="lostDate">Date Lost <span class="req">*</span></label>
+                                <input type="date" id="lostDate" required>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="lostContact">Contact Phone / Email</label>
+                                <input type="text" id="lostContact"
+                                    placeholder="e.g. student@univ.edu or 0917-XXX-XXXX">
+                            </div>
+
+                            <div class="form-field full-width confidential-field">
+                                <label for="lostMarkings">
+                                    <i data-lucide="shield-lock"></i> Unique Markings / Distinguishing Features <span
+                                        class="req">*</span>
+                                    <span class="security-tag">Confidential • For Desk Verification</span>
+                                </label>
+                                <textarea id="lostMarkings" rows="3"
+                                    placeholder="Describe unique stickers, scratches, custom serial numbers, initial engravings, or wallpapers. (This information remains encrypted & confidential for in-person verification at SBO Office)."
+                                    required></textarea>
+                                <small class="field-hint">CampusFind AI will use these features strictly to match found
+                                    items without exposing them publicly.</small>
+                            </div>
+
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="reset" class="btn-secondary">Reset Form</button>
+                            <button type="submit" class="btn-primary" id="btnSubmitLost">
+                                <i data-lucide="send"></i>
+                                Submit Lost Item Report
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 4: REPORT FOUND ITEM -->
+            <section id="tab-report-found" class="tab-pane">
+                <div class="form-container">
+                    <div class="form-header">
+                        <div class="form-icon found-icon"><i data-lucide="package-check"></i></div>
+                        <div>
+                            <h2>Report a Found Item</h2>
+                            <p>Turn in or record an item found within CCIT Department premises.</p>
+                        </div>
+                    </div>
+
+                    <!-- Auth Alert Box -->
+                    <div class="auth-gate-banner" id="foundAuthGate">
+                        <i data-lucide="lock"></i>
+                        <div>
+                            <strong>Authentication Required</strong>
+                            <p>Please log in with your Student ID to report, search, or claim items.</p>
+                        </div>
+                        <button class="btn-primary" onclick="openAuthModal()">Login with Student ID</button>
+                    </div>
+
+                    <form id="foundItemForm" onsubmit="submitFoundItemForm(event)" class="guided-form">
+                        <div class="form-grid">
+
+                            <div class="form-field full-width">
+                                <label for="foundCategory">Item Category <span class="req">*</span></label>
+                                <select id="foundCategory" required>
+                                    <option value="" disabled selected>Select category...</option>
+                                    <option value="Electronics">Electronics (Laptop, Phone, Charger, Flash Drive)
+                                    </option>
+                                    <option value="ID & Cards">Student ID, Credit Card, RFID Badge</option>
+                                    <option value="Bags & Accessories">Backpack, Wallet, Pouch, Sunglasses</option>
+                                    <option value="Keys & Personal">Keys, Keychain, Water Bottle, Umbrella</option>
+                                    <option value="Books & Notes">Notebook, Textbook, Scientific Calculator</option>
+                                    <option value="Apparel & Umbrella">Jacket, Hoodie, Cap, Umbrella</option>
+                                    <option value="Others">Other Items</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field full-width">
+                                <label for="foundVisualDesc">Visual Description (Public Summary) <span
+                                        class="req">*</span></label>
+                                <input type="text" id="foundVisualDesc"
+                                    placeholder="e.g. Silver Wireless Mouse, Black USB-C Hub, Red Water Bottle"
+                                    required>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="foundLocation">Location Found <span class="req">*</span></label>
+                                <select id="foundLocation" required>
+                                    <option value="" disabled selected>Select CCIT location...</option>
+                                    <option value="CCIT Computer Lab 1">CCIT Computer Lab 1</option>
+                                    <option value="CCIT Computer Lab 2">CCIT Computer Lab 2</option>
+                                    <option value="CCIT Computer Lab 3">CCIT Computer Lab 3</option>
+                                    <option value="Lecture Hall A">Lecture Hall A</option>
+                                    <option value="Lecture Hall B">Lecture Hall B</option>
+                                    <option value="CCIT Student Lounge">CCIT Student Lounge</option>
+                                    <option value="CCIT Library & Study Center">CCIT Library & Study Center</option>
+                                    <option value="SBO Office Desk">SBO Office Desk Area</option>
+                                    <option value="Faculty Office Floor">Faculty Office Floor</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="foundDropLocation">Current Drop-off Location <span
+                                        class="req">*</span></label>
+                                <select id="foundDropLocation" required>
+                                    <option value="SBO Office Desk (Room CCIT-302)" selected>SBO Office Desk (Room
+                                        CCIT-302)</option>
+                                    <option value="CCIT Department Head Office">CCIT Department Head Office</option>
+                                    <option value="CCIT Lab Custodian Desk">CCIT Lab Custodian Desk</option>
+                                    <option value="Held by Finder (Pending Handover)">Held by Finder (Pending Handover)
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="form-field full-width confidential-field">
+                                <label for="foundMarkings">
+                                    <i data-lucide="shield-check"></i> Internal Distinguishing Markings (Desk Inspection
+                                    Only) <span class="req">*</span>
+                                    <span class="security-tag">Internal Record • Kept Secret</span>
+                                </label>
+                                <textarea id="foundMarkings" rows="3"
+                                    placeholder="Record unique characteristics observed (e.g. initial 'J.D.' on back cover, sticker of Linux Tux, wallpaper photo, engraved serial number). This will NOT be shown publicly."
+                                    required></textarea>
+                            </div>
+
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="reset" class="btn-secondary">Reset Form</button>
+                            <button type="submit" class="btn-primary" id="btnSubmitFound">
+                                <i data-lucide="check-circle"></i>
+                                Catalog Found Item
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 5: MY CLAIMS & VERIFICATION -->
+            <section id="tab-my-claims" class="tab-pane">
+                <div class="claims-header">
+                    <div>
+                        <h2><i data-lucide="ticket"></i> My Active Claims & Reference Codes</h2>
+                        <p>Track your claim requests and present your reference code at the SBO Office.</p>
+                    </div>
+
+                    <div class="office-location-card">
+                        <div class="location-icon"><i data-lucide="building"></i></div>
+                        <div class="location-details">
+                            <strong>SBO Office Verification Location</strong>
+                            <p>Room CCIT-302 • Operating Hours: <strong>8:00 AM - 3:00 PM</strong></p>
+                            <small>Mandatory: Bring your physical Student ID card to verify item details in
+                                person.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="myClaimsList" class="claims-list-container">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+            <!-- TAB 6: SBO DESK ADMIN CONSOLE -->
+            <section id="tab-admin" class="tab-pane">
+                <div class="admin-header">
+                    <div class="section-title-box">
+                        <h2><i data-lucide="shield-check"></i> SBO Desk Operations Management</h2>
+                        <p>Desk Staff Interface: Manage item catalog, verify student claims, and mark returns.</p>
+                    </div>
+                    <div class="admin-badge">Desk Staff Mode</div>
+                </div>
+
+                <div class="admin-stats-grid" id="adminStatsGrid">
+                    <!-- Dynamic admin stats -->
+                </div>
+
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Description / Brand</th>
+                                <th>Location</th>
+                                <th>Date</th>
+                                <th>Internal Unique Markings</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <p>© 2026 <strong>CCIT Department</strong> - CampusFind AI Lost and Found System. All rights reserved.
+                </p>
+                <div class="footer-links">
+                    <span><i data-lucide="clock"></i> Hours: 8:00 AM - 3:00 PM</span>
+                    <span><i data-lucide="map-pin"></i> SBO Office (CCIT-302)</span>
+                    <span><i data-lucide="shield"></i> Privacy & Verification Protocol Active</span>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- AUTHENTICATION MODAL -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i data-lucide="shield-check" class="auth-modal-icon"></i>
+                    <h3>Student Authentication</h3>
+                </div>
+                <button class="btn-close-modal" onclick="closeAuthModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="modal-desc">
+                    To access reporting, searching, or claiming lost items, please enter your official <strong>Student
+                        ID</strong>.
+                </p>
+
+                <form id="authForm" onsubmit="handleAuthSubmit(event)">
+                    <div class="form-field">
+                        <label for="studentIdInput">Official Student ID <span class="req">*</span></label>
+                        <div class="input-with-icon">
+                            <i data-lucide="id-card"></i>
+                            <input type="text" id="studentIdInput" placeholder="e.g. 2024-CCIT-1082" required
+                                autocomplete="off">
+                        </div>
+                        <small class="field-hint">Example format: <code>2024-CCIT-XXXX</code> or
+                            <code>2023-CS-XXXX</code></small>
+                    </div>
+
+                    <!-- Quick Select Preset Accounts -->
+                    <div class="preset-students">
+                        <span class="preset-label">Quick Demo Accounts:</span>
+                        <div class="preset-btns">
+                            <button type="button" class="btn-preset"
+                                onclick="usePresetStudent('2024-CCIT-1082', 'Alex Vance')">2024-CCIT-1082 (Alex
+                                Vance)</button>
+                            <button type="button" class="btn-preset"
+                                onclick="usePresetStudent('2023-CS-5591', 'Samantha Reyes')">2023-CS-5591 (Samantha
+                                Reyes)</button>
+                            <button type="button" class="btn-preset"
+                                onclick="usePresetStudent('2025-IT-3319', 'Marcus Chen')">2025-IT-3319 (Marcus
+                                Chen)</button>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeAuthModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">Authenticate Student ID</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLAIM MODAL -->
+    <div class="modal-overlay" id="claimModal">
+        <div class="modal-card claim-modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i data-lucide="ticket" class="claim-modal-icon"></i>
+                    <h3>Generate Claim Reference Code</h3>
+                </div>
+                <button class="btn-close-modal" onclick="closeClaimModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="modal-body" id="claimModalBody">
+                <!-- Dynamic Claim Info generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
